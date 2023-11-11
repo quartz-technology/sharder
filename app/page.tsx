@@ -13,7 +13,7 @@ export default function Home() {
 				<h1 className={title({ color: "violet" })}>SHARDER&nbsp;</h1>
 				<br />
 				<h1 className={title()}>
-					is a GUI for Shamir's Secret Sharing.
+					is a GUI for Shamir&apos;s Secret Sharing.
 				</h1>
 				<h2 className={subtitle({ class: "mt-4" })}>
 					Easily split a secret or combine shares.

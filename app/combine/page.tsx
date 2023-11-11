@@ -11,6 +11,7 @@ import { subtitle, title } from "@/components/primitives";
 import { combine } from 'shamir-secret-sharing';
 import { saveAs } from "file-saver";
 import { Toaster, toast } from 'sonner';
+import {DropEvent} from "@react-types/shared";
 
 /**
  * CombinePage component provides a user interface for file combining functionality.
@@ -26,14 +27,24 @@ export default function CombinePage() {
 		[selectedFileFormat]
 	);
 
-	const handleDrop = (event: any) => {
+	const handleDrop = async (event: DropEvent) => {
 		let droppedFiles: File[] = [];
-		event.items.forEach(async (item: any) => {
+
+		const fls = await Promise.all(event.items.map(item => {
+			// We return a promise for each file kind item
 			if (item.kind === "file") {
-				const file = await item.getFile();
-				droppedFiles.push(file);
+				return item.getFile();
 			}
-		});
+			// We return a null for non-file items, which we'll filter out later
+			return null;
+		}));
+
+		fls.forEach((f) => {
+			if (f !== null) {
+				droppedFiles.push(f);
+			}
+		})
+
 		setFiles([...files, ...droppedFiles]);
 		setIsFilled(true);
 	};

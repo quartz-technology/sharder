@@ -28,7 +28,7 @@ export default function Step3({ shares }: Step3Props) {
 
   return (
     <CardBody className={"items-center justify-center"}>
-      <Button variant={"bordered"} color={"secondary"} radius={"none"} onClick={downloadShares}>
+      <Button variant={"bordered"} radius={"none"} onClick={downloadShares}>
         Download your {shares.length} shares
       </Button>
     </CardBody>

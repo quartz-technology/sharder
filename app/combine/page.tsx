@@ -6,9 +6,11 @@ import { Button } from "@nextui-org/button";
 import { DropZone } from '@react-spectrum/dropzone';
 import Upload from '@spectrum-icons/illustrations/Upload';
 import { Content, IllustratedMessage } from '@adobe/react-spectrum';
-import { useDrag } from '@react-aria/dnd';
-import { FileTrigger, Heading, Text } from "react-aria-components";
+import { Heading, Text } from "react-aria-components";
 import { subtitle, title } from "@/components/primitives";
+import { combine } from 'shamir-secret-sharing';
+import { saveAs } from "file-saver";
+import { Toaster, toast } from 'sonner';
 
 /**
  * CombinePage component provides a user interface for file combining functionality.
@@ -44,8 +46,27 @@ export default function CombinePage() {
 		}
 	};
 
+	const handleCombineAndDownload = async (): Promise<void> => {
+		try {
+			const shares: Uint8Array[] = await Promise.all(files.map(async (file: File) => {
+				const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
+				return new Uint8Array(arrayBuffer);
+			}));
+
+			const combinedData: Uint8Array = await combine(shares);
+
+			const blob: Blob = new Blob([combinedData], { type: "application/octet-stream" });
+
+			const fileName: string = "recovered_secret" + Array.from(selectedFileFormat);
+			saveAs(blob, fileName);
+		} catch (error: any) {
+			toast.error(`Error when combining files : ${error.message}`);
+		}
+	};
+
 	return (
 		<div className={"flex flex-col w-full h-full justify-between"}>
+			<Toaster position={"bottom-center"} />
 			<h1 className={title()}>Combine your shares</h1>
 			<h1 className={subtitle()}>And reconstruct a secret</h1>
 			<div className={"flex w-full h-full justify-between"}>
@@ -59,12 +80,12 @@ export default function CombinePage() {
 								<Upload />
 								<Heading className={"mt-4"}>
 									<Text slot="label">
-										{isFilled ? 'Shares have been dropped' : 'Drag and drop here'}
+										{isFilled ? `${files.length} Shares have been dropped` : 'Drag and drop here'}
 									</Text>
 								</Heading>
 								<Content>
 									<Button variant={"bordered"} radius={"none"} onClick={() => document.getElementById("combine-zone")?.click()}>Browse</Button>
-									<input style={{ display: "none" }} id={"combine-zone"} type="file" onChange={handleFileChange}/>
+									<input style={{ display: "none" }} id={"combine-zone"} type="file" onChange={handleFileChange} multiple/>
 								</Content>
 							</IllustratedMessage>
 						</DropZone>
@@ -73,7 +94,7 @@ export default function CombinePage() {
 				</Card>
 			</div>
 			<div className={"flex w-full justify-end gap-5"}>
-				<Button color={"primary"} radius={"none"}>
+				<Button color={"primary"} radius={"none"} onClick={handleCombineAndDownload}>
 					Combine and download
 				</Button>
 				<Dropdown backdrop="blur">

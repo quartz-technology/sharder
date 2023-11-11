@@ -80,12 +80,12 @@ export default function CombinePage() {
 								<Upload />
 								<Heading className={"mt-4"}>
 									<Text slot="label">
-										{isFilled ? 'Shares have been dropped' : 'Drag and drop here'}
+										{isFilled ? `${files.length} Shares have been dropped` : 'Drag and drop here'}
 									</Text>
 								</Heading>
 								<Content>
 									<Button variant={"bordered"} radius={"none"} onClick={() => document.getElementById("combine-zone")?.click()}>Browse</Button>
-									<input style={{ display: "none" }} id={"combine-zone"} type="file" onChange={handleFileChange}/>
+									<input style={{ display: "none" }} id={"combine-zone"} type="file" onChange={handleFileChange} multiple/>
 								</Content>
 							</IllustratedMessage>
 						</DropZone>

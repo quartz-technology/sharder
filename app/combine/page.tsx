@@ -11,31 +11,6 @@ import { FileTrigger, Heading, Text } from "react-aria-components";
 import { subtitle, title } from "@/components/primitives";
 
 /**
- * Draggable component allows elements to be draggable.
- * It uses useDrag hook from @react-aria/dnd for drag functionalities.
- */
-function Draggable() {
-	const { dragProps, isDragging } = useDrag({
-		getItems() {
-			return [{
-				'text/plain': 'hello world',
-				'my-app-custom-type': JSON.stringify({ message: 'hello world' })
-			}];
-		}
-	});
-
-	return (
-		<div
-			{...dragProps}
-			role="button"
-			tabIndex={0}
-			className={`draggable ${isDragging ? 'dragging' : ''}`}
-		>
-		</div>
-	);
-}
-
-/**
  * CombinePage component provides a user interface for file combining functionality.
  */
 export default function CombinePage() {
@@ -76,7 +51,6 @@ export default function CombinePage() {
 			<div className={"flex w-full h-full justify-between"}>
 				<Card className={"w-full mt-4 mb-4"}>
 					<CardBody>
-						<Draggable />
 						<DropZone
 							flex
 							isFilled={isFilled}
@@ -85,15 +59,12 @@ export default function CombinePage() {
 								<Upload />
 								<Heading className={"mt-4"}>
 									<Text slot="label">
-										{isFilled ? 'You dropped something!' : 'Drag and drop here'}
+										{isFilled ? 'Shares have been dropped' : 'Drag and drop here'}
 									</Text>
 								</Heading>
 								<Content>
-									<FileTrigger
-										onSelect={()=> setIsFilled(true)}>
-										<Button variant={"bordered"} radius={"none"} onClick={() => document.getElementById("combine-zone")?.click()}>Browse</Button>
-										<input style={{ display: "none" }} id={"combine-zone"} type="file" onChange={handleFileChange}/>
-									</FileTrigger>
+									<Button variant={"bordered"} radius={"none"} onClick={() => document.getElementById("combine-zone")?.click()}>Browse</Button>
+									<input style={{ display: "none" }} id={"combine-zone"} type="file" onChange={handleFileChange}/>
 								</Content>
 							</IllustratedMessage>
 						</DropZone>

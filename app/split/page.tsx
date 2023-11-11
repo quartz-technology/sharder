@@ -58,8 +58,15 @@ export default function SplitPage() {
 					break;
 				}
 
-				setShares(await split(secret, sharesNumber as number, reconstructionThreshold as number));
-				setActiveStep(2);
+				try {
+					setShares(await split(secret, sharesNumber as number, reconstructionThreshold as number));
+					setActiveStep(2);
+
+					break;
+				} catch (e) {
+					toast.error("The split process has encountered an error");
+					console.error(e);
+				}
 
 				break;
 			case 2:

@@ -3,13 +3,13 @@
 import {Stepper, StepItem} from "@/components/stepper";
 import React from "react";
 import {Button} from "@nextui-org/button";
-import {Card, SliderValue} from "@nextui-org/react";
+import {Card, SliderValue, Spinner} from "@nextui-org/react";
 import StepUpload from "@/app/split/step-upload";
 import StepConfigure from "@/app/split/step-configure";
 import StepDownload from "@/app/split/step-download";
 import {subtitle, title} from "@/components/primitives";
 import {toast, Toaster} from "sonner";
-import {split} from "shamir-secret-sharing";
+import {SplitWorkerMessage, SplitWorkerResult} from "@/app/split/worker";
 
 enum Step {
 	Upload = 0,
@@ -22,6 +22,36 @@ export default function SplitPage() {
 	const [shares, setShares] = React.useState<Uint8Array[]>([]);
 	const [sharesNumber, setSharesNumber] = React.useState<SliderValue>(2);
 	const [reconstructionThreshold, setReconstructionThreshold] = React.useState<SliderValue>(2);
+	const [splitting, setSplitting] = React.useState<boolean>(false);
+
+	const [webWorker, setWebWorker] = React.useState<Worker | null>(null);
+
+	React.useEffect(() => {
+		const ww = new Worker(new URL('./worker.ts', import.meta.url));
+
+		ww.onmessage = (e: MessageEvent<SplitWorkerResult>) => {
+			if (e.data) {
+				if (e.data.error === null) {
+					setShares(e.data.shares);
+					setSplitting(false);
+					setActiveStep(Step.Download);
+				} else {
+					toast.error("The split process has encountered an error");
+					console.error(e.data.error);
+				}
+			}
+		}
+
+		setWebWorker(ww);
+	}, [setWebWorker]);
+
+	React.useEffect(() => {
+		return () => {
+			if (webWorker) {
+				webWorker.terminate();
+			}
+		};
+	}, []);
 
 	const stepItems: StepItem[] = [
 		{
@@ -64,14 +94,13 @@ export default function SplitPage() {
 					break;
 				}
 
-				try {
-					setShares(await split(secret, sharesNumber as number, reconstructionThreshold as number));
-					setActiveStep(Step.Download);
-
-					break;
-				} catch (e) {
-					toast.error("The split process has encountered an error");
-					console.error(e);
+				setSplitting(true);
+				if (webWorker) {
+					webWorker.postMessage({
+						secret: secret,
+						sharesNumber: sharesNumber as number,
+						reconstructionThreshold: reconstructionThreshold as number,
+					} as SplitWorkerMessage);
 				}
 
 				break;
@@ -104,20 +133,23 @@ export default function SplitPage() {
 				>
 					Back
 				</Button>
+				{splitting &&
+				<Spinner />
+				}
 				<Button
 					color={"primary"}
 					radius={"none"}
-					isDisabled={activeStep === stepItems.length}
+					isDisabled={activeStep === stepItems.length || splitting}
 					onClick={onNextStep}
 				>
 					{
 						(() => {
 							switch (activeStep) {
-								case 0:
+								case Step.Upload:
 									return "Next"
-								case 1:
-									return "Split"
-								case 2:
+								case Step.Configure:
+									return splitting ? "In progress" : "Split";
+								case Step.Download:
 									return "Reset"
 							}
 						})()

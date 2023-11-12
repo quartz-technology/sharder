@@ -21,7 +21,8 @@ import {
 	GithubIcon,
 } from "@/components/icons";
 
-import { Logo } from "@/components/icons";
+import SharderLogo from "@/public/sharder.png";
+import Image from "next/image";
 
 export const Navbar = () => {
 	return (
@@ -29,7 +30,13 @@ export const Navbar = () => {
 			<NavbarContent className="basis-1/5 sm:basis-full" justify="start">
 				<NavbarBrand as="li" className="gap-3 max-w-fit">
 					<NextLink className="flex justify-start items-center gap-1" href="/">
-						<Logo />
+						<Image
+							className={"border-foreground rounded-full border-2"}
+							width={24}
+							height={24}
+							src={SharderLogo}
+							alt={"Sharder Logo"}
+						/>
 						<p className="font-bold text-inherit">SHARDER</p>
 					</NextLink>
 				</NavbarBrand>

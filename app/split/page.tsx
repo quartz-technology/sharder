@@ -11,6 +11,12 @@ import {subtitle, title} from "@/components/primitives";
 import {toast, Toaster} from "sonner";
 import {split} from "shamir-secret-sharing";
 
+enum Step {
+	Upload = 0,
+	Configure,
+	Download,
+}
+
 export default function SplitPage() {
 	const [secret, setSecret] = React.useState<Uint8Array>(new Uint8Array());
 	const [shares, setShares] = React.useState<Uint8Array[]>([]);
@@ -44,15 +50,15 @@ export default function SplitPage() {
 
 	const onNextStep = async () => {
 		switch (activeStep) {
-			case 0:
+			case Step.Upload:
 				if (secret.length > 0) {
-					setActiveStep(1);
+					setActiveStep(Step.Configure);
 				} else {
 					toast.error("You must select one non-empty file to split");
 				}
 
 				break;
-			case 1:
+			case Step.Configure:
 				if (reconstructionThreshold > sharesNumber) {
 					toast.error("The reconstruction threshold must be less or equal to the number of shares")
 					break;
@@ -60,7 +66,7 @@ export default function SplitPage() {
 
 				try {
 					setShares(await split(secret, sharesNumber as number, reconstructionThreshold as number));
-					setActiveStep(2);
+					setActiveStep(Step.Download);
 
 					break;
 				} catch (e) {
@@ -69,10 +75,10 @@ export default function SplitPage() {
 				}
 
 				break;
-			case 2:
+			case Step.Download:
 				setSecret(new Uint8Array());
 				setShares([]);
-				setActiveStep(0);
+				setActiveStep(Step.Upload);
 		}
 	};
 

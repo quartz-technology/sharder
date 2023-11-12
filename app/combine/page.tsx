@@ -8,10 +8,10 @@ import Upload from '@spectrum-icons/illustrations/Upload';
 import { Content, IllustratedMessage } from '@adobe/react-spectrum';
 import { Heading, Text } from "react-aria-components";
 import { subtitle, title } from "@/components/primitives";
-import { combine } from 'shamir-secret-sharing';
 import { saveAs } from "file-saver";
 import { Toaster, toast } from 'sonner';
 import {DropEvent} from "@react-types/shared";
+import {CombineWorkerMessage, CombineWorkerResult} from "@/app/combine/worker";
 
 /**
  * CombinePage component provides a user interface for file combining functionality.
@@ -20,7 +20,33 @@ export default function CombinePage() {
 	const [selectedFileFormat, setSelectedFileFormat] = React.useState(new Set([".txt"]));
 	const [isFilled, setIsFilled] = React.useState(false);
 	const [files, setFiles] = React.useState<File[]>([]);
+	const [combining, setCombining] = React.useState<boolean>(false);
 
+	const [webWorker] = React.useState(new Worker(new URL('./worker.ts', import.meta.url)));
+
+	React.useEffect(() => {
+		webWorker.onmessage = (e: MessageEvent<CombineWorkerResult>) => {
+			if (e.data) {
+				if (e.data.error === null) {
+					setCombining(false);
+
+					const blob: Blob = new Blob([e.data.secret], { type: "application/octet-stream" });
+					const fileName: string = "recovered_secret" + Array.from(selectedFileFormat);
+
+					saveAs(blob, fileName);
+				} else {
+					toast.error("The combine process has encountered an error");
+					console.error(e.data.error);
+				}
+			}
+		}
+	}, [webWorker, selectedFileFormat]);
+
+	React.useEffect(() => {
+		return () => {
+			webWorker.terminate();
+		};
+	}, []);
 
 	const selectedValue = React.useMemo(
 		() => Array.from(selectedFileFormat).join(", ").replaceAll("_", " "),
@@ -58,21 +84,16 @@ export default function CombinePage() {
 	};
 
 	const handleCombineAndDownload = async (): Promise<void> => {
-		try {
-			const shares: Uint8Array[] = await Promise.all(files.map(async (file: File) => {
-				const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
-				return new Uint8Array(arrayBuffer);
-			}));
+		const shares: Uint8Array[] = await Promise.all(files.map(async (file: File) => {
+			const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
+			return new Uint8Array(arrayBuffer);
+		}));
 
-			const combinedData: Uint8Array = await combine(shares);
+		setCombining(true);
 
-			const blob: Blob = new Blob([combinedData], { type: "application/octet-stream" });
-
-			const fileName: string = "recovered_secret" + Array.from(selectedFileFormat);
-			saveAs(blob, fileName);
-		} catch (error: any) {
-			toast.error(`Error when combining files : ${error.message}`);
-		}
+		webWorker.postMessage({
+			shares: shares,
+		} as CombineWorkerMessage)
 	};
 
 	return (
@@ -105,14 +126,20 @@ export default function CombinePage() {
 				</Card>
 			</div>
 			<div className={"flex w-full justify-end gap-5"}>
-				<Button color={"primary"} radius={"none"} onClick={handleCombineAndDownload}>
-					Combine and download
+				<Button
+					color={"primary"}
+					radius={"none"}
+					onClick={handleCombineAndDownload}
+					isDisabled={combining}
+				>
+					{combining ? "In progress" : "Combine and download"}
 				</Button>
 				<Dropdown backdrop="blur">
 					<DropdownTrigger>
 						<Button
 							variant={"bordered"}
 							radius={"none"}
+							isDisabled={combining}
 						>
 							{selectedValue}
 						</Button>
@@ -121,7 +148,9 @@ export default function CombinePage() {
 						aria-label="File Formats"
 						selectionMode={"single"}
 						selectedKeys={selectedFileFormat}
-						onSelectionChange={(keys) => setSelectedFileFormat(keys as Set<string>)}
+						onSelectionChange={(keys) => {
+							setSelectedFileFormat(keys as Set<string>);
+						}}
 					>
 						<DropdownItem key=".txt">.txt</DropdownItem>
 						<DropdownItem key=".png">.png</DropdownItem>

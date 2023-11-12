@@ -5,6 +5,7 @@ const nextConfig = {
     experimental: {
         nextScriptWorkers: true,
     },
+    images: { unoptimized: true },
 }
 
 module.exports = nextConfig

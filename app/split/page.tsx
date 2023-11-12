@@ -24,10 +24,12 @@ export default function SplitPage() {
 	const [reconstructionThreshold, setReconstructionThreshold] = React.useState<SliderValue>(2);
 	const [splitting, setSplitting] = React.useState<boolean>(false);
 
-	const [webWorker] = React.useState(new Worker(new URL('./worker.ts', import.meta.url)));
+	const [webWorker, setWebWorker] = React.useState<Worker | null>(null);
 
 	React.useEffect(() => {
-		webWorker.onmessage = (e: MessageEvent<SplitWorkerResult>) => {
+		const ww = new Worker(new URL('./worker.ts', import.meta.url));
+
+		ww.onmessage = (e: MessageEvent<SplitWorkerResult>) => {
 			if (e.data) {
 				if (e.data.error === null) {
 					setShares(e.data.shares);
@@ -39,11 +41,15 @@ export default function SplitPage() {
 				}
 			}
 		}
-	}, []);
+
+		setWebWorker(ww);
+	}, [setWebWorker]);
 
 	React.useEffect(() => {
 		return () => {
-			webWorker.terminate();
+			if (webWorker) {
+				webWorker.terminate();
+			}
 		};
 	}, []);
 
@@ -89,11 +95,13 @@ export default function SplitPage() {
 				}
 
 				setSplitting(true);
-				webWorker.postMessage({
-					secret: secret,
-					sharesNumber: sharesNumber as number,
-					reconstructionThreshold: reconstructionThreshold as number,
-				} as SplitWorkerMessage);
+				if (webWorker) {
+					webWorker.postMessage({
+						secret: secret,
+						sharesNumber: sharesNumber as number,
+						reconstructionThreshold: reconstructionThreshold as number,
+					} as SplitWorkerMessage);
+				}
 
 				break;
 			case Step.Download:

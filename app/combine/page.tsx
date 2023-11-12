@@ -22,10 +22,12 @@ export default function CombinePage() {
 	const [files, setFiles] = React.useState<File[]>([]);
 	const [combining, setCombining] = React.useState<boolean>(false);
 
-	const [webWorker] = React.useState(new Worker(new URL('./worker.ts', import.meta.url)));
+	const [webWorker, setWebWorker] = React.useState<Worker | null>(null);
 
 	React.useEffect(() => {
-		webWorker.onmessage = (e: MessageEvent<CombineWorkerResult>) => {
+		const ww = new Worker(new URL('./worker.ts', import.meta.url));
+
+		ww.onmessage = (e: MessageEvent<CombineWorkerResult>) => {
 			if (e.data) {
 				if (e.data.error === null) {
 					setCombining(false);
@@ -40,11 +42,15 @@ export default function CombinePage() {
 				}
 			}
 		}
-	}, [webWorker, selectedFileFormat]);
+
+		setWebWorker(ww);
+	}, [setWebWorker, selectedFileFormat]);
 
 	React.useEffect(() => {
 		return () => {
-			webWorker.terminate();
+			if (webWorker) {
+				webWorker.terminate();
+			}
 		};
 	}, []);
 
@@ -91,9 +97,11 @@ export default function CombinePage() {
 
 		setCombining(true);
 
-		webWorker.postMessage({
-			shares: shares,
-		} as CombineWorkerMessage)
+		if (webWorker) {
+			webWorker.postMessage({
+				shares: shares,
+			} as CombineWorkerMessage)
+		}
 	};
 
 	return (

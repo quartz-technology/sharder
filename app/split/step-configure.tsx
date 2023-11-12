@@ -2,14 +2,14 @@ import {CardBody, Divider, Slider, SliderValue, Tooltip} from "@nextui-org/react
 import React from "react";
 import ConfigurationSlider from "@/components/configuration-slider";
 
-export interface Step2Props {
+export interface StepConfigureProps {
   sharesNumber: SliderValue;
   setSharesNumber: React.Dispatch<React.SetStateAction<SliderValue>>;
   reconstructionThreshold: SliderValue;
   setReconstructionThreshold: React.Dispatch<React.SetStateAction<SliderValue>>;
 }
 
-export default function Step2({ sharesNumber, setSharesNumber, reconstructionThreshold, setReconstructionThreshold }: Step2Props) {
+export default function StepConfigure({ sharesNumber, setSharesNumber, reconstructionThreshold, setReconstructionThreshold }: StepConfigureProps) {
   return (
     <CardBody className={"flex"}>
       <div>

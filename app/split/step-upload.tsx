@@ -7,11 +7,11 @@ import {Button} from "@nextui-org/button";
 import {DropZone} from "@react-spectrum/dropzone";
 import {DropEvent} from "@react-types/shared";
 
-export interface Step1Props {
+export interface StepUploadProps {
   setSecret: React.Dispatch<React.SetStateAction<Uint8Array>>;
 }
 
-export default function Step1({ setSecret }: Step1Props) {
+export default function StepUpload({ setSecret }: StepUploadProps) {
   const [isFilled, setIsFilled] = React.useState(false);
 
   const onFileDrop = async (e: DropEvent) => {

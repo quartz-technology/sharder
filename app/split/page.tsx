@@ -4,9 +4,9 @@ import {Stepper, StepItem} from "@/components/stepper";
 import React from "react";
 import {Button} from "@nextui-org/button";
 import {Card, SliderValue} from "@nextui-org/react";
-import Step1 from "@/app/split/step1";
-import Step2 from "@/app/split/step2";
-import Step3 from "@/app/split/step3";
+import StepUpload from "@/app/split/step-upload";
+import StepConfigure from "@/app/split/step-configure";
+import StepDownload from "@/app/split/step-download";
 import {subtitle, title} from "@/components/primitives";
 import {toast, Toaster} from "sonner";
 import {split} from "shamir-secret-sharing";
@@ -26,11 +26,11 @@ export default function SplitPage() {
 	const stepItems: StepItem[] = [
 		{
 			name: "Upload",
-			content: <Step1 setSecret={setSecret}/>,
+			content: <StepUpload setSecret={setSecret}/>,
 		},
 		{
 			name: "Configure",
-			content: <Step2
+			content: <StepConfigure
 				sharesNumber={sharesNumber}
 				setSharesNumber={setSharesNumber}
 				reconstructionThreshold={reconstructionThreshold}
@@ -39,7 +39,7 @@ export default function SplitPage() {
 		},
 		{
 			name: "Download",
-			content: <Step3 shares={shares} />,
+			content: <StepDownload shares={shares} />,
 		},
 	];
 	const [activeStep, setActiveStep] = React.useState<number>(0);

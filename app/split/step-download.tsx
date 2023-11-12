@@ -4,11 +4,11 @@ import {Button} from "@nextui-org/button";
 import JSZip from "jszip";
 import {saveAs} from "file-saver";
 
-export interface Step3Props {
+export interface StepDownloadProps {
   shares: Uint8Array[];
 }
 
-export default function Step3({ shares }: Step3Props) {
+export default function StepDownload({ shares }: StepDownloadProps) {
   const downloadShares = async () => {
     const zip = new JSZip();
     const sharesFiles = shares.map((share, id) => {

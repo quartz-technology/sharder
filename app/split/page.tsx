@@ -145,11 +145,11 @@ export default function SplitPage() {
 					{
 						(() => {
 							switch (activeStep) {
-								case 0:
+								case Step.Upload:
 									return "Next"
-								case 1:
+								case Step.Configure:
 									return splitting ? "In progress" : "Split";
-								case 2:
+								case Step.Download:
 									return "Reset"
 							}
 						})()
